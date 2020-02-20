@@ -1,4 +1,5 @@
 'use strict';
+const DAY_STRING = ['день', 'дня', 'дней'];
 const DATA = {
     whichSite: [
         'landing',
@@ -57,7 +58,13 @@ const startButton = document.querySelector('.start-button'),
       endButton = document.querySelector('.end-button'),
       total = document.querySelector('.total'),
       fastRange = document.querySelector('.fast-range'),
-      totalPriceSum = document.querySelector('.total_price__sum');
+      totalPriceSum = document.querySelector('.total_price__sum'),
+      adapt = document.getElementById('adapt'),
+      mobileTemplates = document.getElementById('mobileTemplates'),
+      typeSite = document.querySelector('.type-site'),
+      maxDeadline = document.querySelector('.max-deadline'),
+      rangeDeadline = document.querySelector('.range-deadline'),
+      deadlineValue = document.querySelector('.deadline-value');
 
 function showElement(elem) {
     elem.style.display = '';
@@ -72,9 +79,24 @@ function disableElem(elem) {
 function enableElem(elem) {
     elem.disabled = false;
 }
+function declOfNum(n, titles, from) {
+    return n + ' ' + titles[from ? n % 10 === 1 && n % 100 !== 11 ? 1 : 2 : n % 10 === 1 && n % 100 !== 11 ?
+        0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2];
+}
+function renderTextContent(total, site, maxDay, minDay) {
+    totalPriceSum.textContent = total;
+    typeSite.textContent = site;
+    maxDeadline.textContent = declOfNum(maxDay, DAY_STRING);
+    rangeDeadline.min = minDay;
+    rangeDeadline.max = maxDay;
+    deadlineValue.textContent = declOfNum(rangeDeadline.value, DAY_STRING);
+}
 function priceCalculation(el, data) {
     let result = 0,
-        index = data.whichSite.indexOf(el.form.querySelector('[name="whichSite"]:checked').value);
+        index = data.whichSite.indexOf(el.form.querySelector('[name="whichSite"]:checked').value),
+        site = '',
+        minDeadLineDay = data.deadlineDay[index][0],
+        maxDeadLineDay = data.deadlineDay[index][1];
     const elements = el.form.elements,
           options = [],
           mobileTemplates = el.form.querySelector('#mobileTemplates');
@@ -88,12 +110,15 @@ function priceCalculation(el, data) {
                 disableElem(item);
             }
         }
+        site = el.dataset.site;
         hideElement(fastRange);
     }
 
     for (const item of elements) {
         if ('whichSite' === item.name && item.checked) {
             index = data.whichSite.indexOf(item.value);
+            minDeadLineDay = data.deadlineDay[index][0];
+            maxDeadLineDay = data.deadlineDay[index][1];
         } else if (item.classList.contains('calc-handler') && item.checked) {
             options.push(item.value);
         }
@@ -125,7 +150,7 @@ function priceCalculation(el, data) {
     
     result += data.price[index];
 
-    totalPriceSum.textContent = result;
+    renderTextContent(result, site, maxDeadLineDay, minDeadLineDay);
 }
 function handlerCallBackForm(event) {
     const target = event.target;
