@@ -1,5 +1,6 @@
 'use strict';
 const DAY_STRING = ['день', 'дня', 'дней'];
+const ANSWER_STRING = ['нет', 'да'];
 const DATA = {
     whichSite: [
         'landing',
@@ -83,13 +84,22 @@ function declOfNum(n, titles, from) {
     return n + ' ' + titles[from ? n % 10 === 1 && n % 100 !== 11 ? 1 : 2 : n % 10 === 1 && n % 100 !== 11 ?
         0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2];
 }
-function renderTextContent(total, site, maxDay, minDay) {
+function renderTextContent(total, site, maxDay, minDay, formTag) {
     totalPriceSum.textContent = total;
     typeSite.textContent = site;
     maxDeadline.textContent = declOfNum(maxDay, DAY_STRING);
     rangeDeadline.min = minDay;
     rangeDeadline.max = maxDay;
     deadlineValue.textContent = declOfNum(rangeDeadline.value, DAY_STRING);
+
+    const elements = formTag.elements;
+    for (const i of elements) {
+        if ('checkbox' === i.type && i.classList.contains('calc-handler')) {
+            if (!i.classList.contains('css-check')) {
+                i.closest('.switcher').querySelector('.checkbox-label').textContent = ANSWER_STRING[Number(i.checked)];
+            }
+        }
+    }
 }
 function priceCalculation(el, data) {
     let result = 0,
@@ -97,9 +107,10 @@ function priceCalculation(el, data) {
         site = '',
         minDeadLineDay = data.deadlineDay[index][0],
         maxDeadLineDay = data.deadlineDay[index][1];
-    const elements = el.form.elements,
+    const form = el.form,
+          elements = form.elements,
           options = [],
-          mobileTemplates = el.form.querySelector('#mobileTemplates');
+          mobileTemplates = form.querySelector('#mobileTemplates');
 
     if ('whichSite' === el.name) {
         for (const item of elements) {
@@ -150,7 +161,7 @@ function priceCalculation(el, data) {
     
     result += data.price[index];
 
-    renderTextContent(result, site, maxDeadLineDay, minDeadLineDay);
+    renderTextContent(result, site, maxDeadLineDay, minDeadLineDay, form);
 }
 function handlerCallBackForm(event) {
     const target = event.target;
